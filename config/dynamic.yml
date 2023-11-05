@@ -1,0 +1,18 @@
+http:
+  routers:
+    traefik:
+      rule: "Host(`traefik.localhost.dev`)"
+      service: "api@internal"
+      tls:
+        domains:
+          - main: "localhost.dev"
+            sans:
+              - "*.localhost.dev"
+          - main: "domain.local"
+            sans:
+              - "*.domain.local"
+
+tls:
+  certificates:
+    - certFile: "/etc/certs/local-cert.pem"
+      keyFile: "/etc/certs/local-key.pem"
