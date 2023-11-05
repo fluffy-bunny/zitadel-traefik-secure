@@ -49,6 +49,16 @@ Don't forget that you can also map TCP and UDP through Træfik.
 127.0.0.1 localhost.dev traefik.localhost.dev whoami.localhost.dev smtp.localhost.dev zitadel.localhost.dev
 ```
 
+## Zitadel SMTP
+
+I configured zitadel to use SMTP4DEV  
+
+```bash
+smtp4dev:25
+```
+
+[smtp4dev localhost](https://smtp.localhost.dev/)  
+
 ## License
 
 MIT
