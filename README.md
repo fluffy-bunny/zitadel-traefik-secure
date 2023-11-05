@@ -56,6 +56,8 @@ I configured zitadel to use SMTP4DEV
 ```bash
 smtp4dev:25
 ```
+![image](https://github.com/fluffy-bunny/zitadel-traefik-secure/assets/201257/81425275-021b-4310-8bda-c1dbcf961b79)
+
 
 [smtp4dev localhost](https://smtp.localhost.dev/)  
 
