@@ -1,0 +1,171 @@
+version: '3.8'
+
+services:
+  reverse-proxy:
+    extends:
+      file: ./common-proxy.yml
+      service: micro
+    image: traefik:latest
+    container_name: traefik
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    ports:
+      # Web
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      # Map the static configuration into the container
+      - ./config/static.yml:/etc/traefik/traefik.yml:ro
+      # Map the dynamic configuration into the container
+      - ./config/dynamic.yml:/etc/traefik/dynamic.yml:ro
+      # Map the certificats into the container
+      - ./certs:/etc/certs:ro
+
+  zitadel:
+    extends:
+      file: ./common-zitadel.yml
+      service: micro
+    container_name: zitadel
+    image: 'ghcr.io/zitadel/zitadel:stable'
+    command: 'start-from-init --masterkey "MasterkeyNeedsToHave32Characters" --tlsMode external --config /config/zitadel.yaml'
+
+    environment:
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: admin@zitadel.docker.localhost
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: Password1!
+      ZITADEL_DATABASE_POSTGRES_PORT: ${POSTGRES_PORT}
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: ${POSTGRES_USER}
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: ${POSTGRES_PASSWORD}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: ${POSTGRES_USER}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - ./config/zitadel:/config
+      - ./config/zitadel/tmp/machinekey:/machinekey
+    depends_on:
+      postgresql:
+        condition: 'service_healthy'
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.zitadel.entrypoints=http"
+      - "traefik.http.routers.zitadel.rule=Host(`zitadel.docker.localhost`)"
+      - "traefik.http.middlewares.zitadel-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.zitadel.middlewares=zitadel-https-redirect"
+      - "traefik.http.routers.zitadel-secure.entrypoints=https"
+      - "traefik.http.routers.zitadel-secure.rule=Host(`zitadel.docker.localhost`)"
+      - "traefik.http.routers.zitadel-secure.tls=true"
+      - "traefik.http.routers.zitadel-secure.service=zitadel"
+      - "traefik.http.services.zitadel.loadbalancer.server.scheme=h2c"
+      - "traefik.http.services.zitadel.loadbalancer.passHostHeader=true"
+      - "traefik.http.services.zitadel.loadbalancer.server.port=8080"
+      - "traefik.docker.network=proxy"
+  postgresql:
+    extends:
+      file: ./common-zitadel.yml
+      service: micro
+    container_name: postgresql
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGPORT: ${POSTGRES_PORT}
+    # We override entrypoint to support docker-entrypoint-on-every-start.d
+    # Read details in config\postgres\override\README.md
+    command: ["./override/docker-entrypoint-override.sh", "postgres"]
+    image: postgres:14
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    volumes:
+      - ./config/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ./config/postgres/docker-entrypoint-on-every-start.d:/docker-entrypoint-on-every-start.d
+      - ./config/postgres/override/:/override
+      - ./config/postgres/backups:/backups
+      - postgresql-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  smtp4dev:
+    extends:
+      file: ./common-zitadel.yml
+      service: micro
+    container_name: smtp4dev
+    image: rnwood/smtp4dev:v3
+
+    ports:
+      # Change the number before : to the port the web interface should be accessible on
+      # - "${SMTP4DEV_WEB_PORT}:80"
+      # Change the number before : to the port the SMTP server should be accessible on
+      - '25:25'
+      # Change the number before : to the port the IMAP server should be accessible on
+      - '143:143'
+    volumes:
+      # This is where smtp4dev stores the database..
+        - smtp4dev-data:/smtp4dev
+    environment:
+      - ServerOptions__HostName=smtp4dev
+      - RelayOptions__SmtpPort=25
+      - ServerOptions__ImapPort=143
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.smtp4dev.entrypoints=http
+      - traefik.http.routers.smtp4dev.rule=Host(`smtp.docker.localhost`)
+      - traefik.http.routers.smtp4dev.service=smtp4dev
+      - traefik.http.services.smtp4dev.loadbalancer.server.port=80
+      - "traefik.http.middlewares.smtp4dev-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.smtp4dev.middlewares=smtp4dev-https-redirect"
+      - "traefik.http.routers.smtp4dev-secure.entrypoints=https"
+      - "traefik.http.routers.smtp4dev-secure.rule=Host(`smtp.docker.localhost`)"
+      - "traefik.http.routers.smtp4dev-secure.tls=true"
+      - "traefik.http.routers.smtp4dev-secure.service=smtp4dev"
+
+      - traefik.tcp.routers.smtp4dev_imap.entrypoints=imap
+      - traefik.tcp.routers.smtp4dev_imap.rule=HostSNI(`imap.docker.localhost`)
+      - traefik.tcp.routers.smtp4dev_imap.service=smtp4dev_imap
+      - traefik.tcp.routers.smtp4dev_imap.tls=true
+      - traefik.tcp.services.smtp4dev_imap.loadbalancer.server.port=143
+
+      - traefik.tcp.routers.smtp4dev_smtp.entrypoints=smtp
+      - traefik.tcp.routers.smtp4dev_smtp.rule=HostSNI(`smtp.docker.localhost`)
+      - traefik.tcp.routers.smtp4dev_smtp.service=smtp4dev_smtp
+      - traefik.tcp.routers.smtp4dev_smtp.tls=true
+      - traefik.tcp.services.smtp4dev_smtp.loadbalancer.server.port=25
+
+      - "traefik.docker.network=proxy"
+
+
+  whoami:
+    extends:
+      file: ./common-zitadel.yml
+      service: micro
+    image: containous/whoami
+    container_name: whoami
+    security_opt:
+      - no-new-privileges:true
+    labels:
+      # Enable this container to be mapped by traefik
+      # For more information, see: https://docs.traefik.io/providers/docker/#exposedbydefault
+      - "traefik.enable=true"
+      # Define the network that should be used
+      - "traefik.docker.network=proxy"
+      # URL to reach this container
+      - "traefik.http.routers.whoami.rule=Host(`whoami.docker.localhost`)"
+      # Activation of TLS
+      - "traefik.http.routers.whoami.tls=true"
+      # If port is different than 80, use the following service:
+      # - "traefik.http.services.<service_name>.loadbalancer.server.port=<port>"
+
+#====================================================
+# NETWORKS
+#====================================================
+networks:
+  proxy:
+  zitadel:
+#====================================================
+# VOLUMES
+#====================================================
+volumes:
+  smtp4dev-data:
+  postgresql-data:
