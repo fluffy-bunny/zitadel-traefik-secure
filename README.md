@@ -46,7 +46,7 @@ Don't forget that you can also map TCP and UDP through Træfik.
 ## hosts file Windows
 
 ```txt
-127.0.0.1 localhost.dev whoami.localhost.dev smtp.localhost.dev zitadel.localhost.dev
+127.0.0.1 localhost.dev traefik.localhost.dev whoami.localhost.dev smtp.localhost.dev zitadel.localhost.dev
 ```
 
 ## License
