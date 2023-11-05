@@ -69,17 +69,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGPORT: ${POSTGRES_PORT}
-    # We override entrypoint to support docker-entrypoint-on-every-start.d
-    # Read details in config\postgres\override\README.md
-    command: ["./override/docker-entrypoint-override.sh", "postgres"]
     image: postgres:14
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
     volumes:
       - ./config/postgres/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
-      - ./config/postgres/docker-entrypoint-on-every-start.d:/docker-entrypoint-on-every-start.d
-      - ./config/postgres/override/:/override
-      - ./config/postgres/backups:/backups
       - postgresql-data:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U postgres" ]
