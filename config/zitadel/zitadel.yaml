@@ -2,7 +2,7 @@ Log:
   Level: 'info'
 
 ExternalSecure: true
-ExternalDomain: 'zitadel.docker.localhost'
+ExternalDomain: 'zitadel.localhost.dev'
 ExternalPort: 443
 
 SystemDefaults:

@@ -2,15 +2,11 @@
 
 This repo is a minimal template to use Traefik v2 on localhost with HTTPS support.
 
-
-
 To get started, just clone this repo:
 
-```
+```bash
 git clone https://github.com/Heziode/traefik-v2-https-ssl-localhost.git
 ```
-
-
 
 Next, go to the root of the repo (`cd traefik-v2-https-ssl-localhost`) and generate certificates using [mkcert](https://github.com/FiloSottile/mkcert) :
 
@@ -18,19 +14,21 @@ Next, go to the root of the repo (`cd traefik-v2-https-ssl-localhost`) and gener
 # If it's the firt install of mkcert, run
 mkcert -install
 
-# Generate certificate for domain "docker.localhost", "domain.local" and their sub-domains
-mkcert -cert-file certs/local-cert.pem -key-file certs/local-key.pem "docker.localhost" "*.docker.localhost" "domain.local" "*.domain.local"
-```
+# Generate certificate for domain "localhost.dev", "domain.local" and their sub-domains
+mkcert -cert-file certs/local-cert.pem -key-file certs/local-key.pem "localhost.dev" "*.localhost.dev" "domain.local" "*.domain.local"
 
+mkcert -cert-file certs/local-cert.pem -key-file certs/local-key.pem "localhost.dev" "*.localhost.dev"  
+
+
+```
 
 Create networks that will be used by Traefik:
 
 ```bash
 docker network create proxy
-``` 
+```
 
-
-Now, start containers with : 
+Now, start containers with :  
 
 ```bash
 # Start Traefik
@@ -39,20 +37,18 @@ docker-compose -f docker-compose.yml up -d
 docker-compose -f whoami.yml up
 ```
 
+You can now go to your browser at [whoami.localhost.dev](https://whoami.localhost.dev), enjoy :rocket: !
 
-
-You can now go to your browser at [whoami.docker.localhost](https://whoami.docker.localhost), enjoy :rocket: !
-
-*Note: you can access to Træfik dashboard at: [traefik.docker.localhost](https://traefik.docker.localhost)*
+*Note: you can access to Træfik dashboard at: [traefik.localhost.dev](https://traefik.localhost.dev)*
 
 Don't forget that you can also map TCP and UDP through Træfik.
 
-## Code of Conduct
+## hosts file Windows
 
-This project adheres to the [Contributor Covenant](https://www.contributor-covenant.org/). By participating in this project you agree to abide by its terms.
+```txt
+127.0.0.1 localhost.dev whoami.localhost.dev smtp.localhost.dev zitadel.localhost.dev
+```
 
-
-
-# License
+## License
 
 MIT

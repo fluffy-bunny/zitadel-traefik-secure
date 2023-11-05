@@ -16,7 +16,7 @@ services:
       # Define the network that should be used
       - "traefik.docker.network=proxy"
       # URL to reach this container
-      - "traefik.http.routers.whoami.rule=Host(`whoami.docker.localhost`)"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost.dev`)"
       # Activation of TLS
       - "traefik.http.routers.whoami.tls=true"
       # If port is different than 80, use the following service:

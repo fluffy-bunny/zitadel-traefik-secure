@@ -28,11 +28,11 @@ services:
       file: ./common-zitadel.yml
       service: micro
     container_name: zitadel
-    image: 'ghcr.io/zitadel/zitadel:stable'
+    image: 'ghcr.io/zitadel/zitadel:v2.39.3'
     command: 'start-from-init --masterkey "MasterkeyNeedsToHave32Characters" --tlsMode external --config /config/zitadel.yaml'
 
     environment:
-      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: admin@zitadel.docker.localhost
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: admin@zitadel.localhost.dev
       ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: Password1!
       ZITADEL_DATABASE_POSTGRES_PORT: ${POSTGRES_PORT}
       ZITADEL_DATABASE_POSTGRES_USER_USERNAME: ${POSTGRES_USER}
@@ -49,11 +49,11 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.zitadel.entrypoints=http"
-      - "traefik.http.routers.zitadel.rule=Host(`zitadel.docker.localhost`)"
+      - "traefik.http.routers.zitadel.rule=Host(`zitadel.localhost.dev`)"
       - "traefik.http.middlewares.zitadel-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.routers.zitadel.middlewares=zitadel-https-redirect"
       - "traefik.http.routers.zitadel-secure.entrypoints=https"
-      - "traefik.http.routers.zitadel-secure.rule=Host(`zitadel.docker.localhost`)"
+      - "traefik.http.routers.zitadel-secure.rule=Host(`zitadel.localhost.dev`)"
       - "traefik.http.routers.zitadel-secure.tls=true"
       - "traefik.http.routers.zitadel-secure.service=zitadel"
       - "traefik.http.services.zitadel.loadbalancer.server.scheme=h2c"
@@ -105,24 +105,24 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.smtp4dev.entrypoints=http
-      - traefik.http.routers.smtp4dev.rule=Host(`smtp.docker.localhost`)
+      - traefik.http.routers.smtp4dev.rule=Host(`smtp.localhost.dev`)
       - traefik.http.routers.smtp4dev.service=smtp4dev
       - traefik.http.services.smtp4dev.loadbalancer.server.port=80
       - "traefik.http.middlewares.smtp4dev-https-redirect.redirectscheme.scheme=https"
       - "traefik.http.routers.smtp4dev.middlewares=smtp4dev-https-redirect"
       - "traefik.http.routers.smtp4dev-secure.entrypoints=https"
-      - "traefik.http.routers.smtp4dev-secure.rule=Host(`smtp.docker.localhost`)"
+      - "traefik.http.routers.smtp4dev-secure.rule=Host(`smtp.localhost.dev`)"
       - "traefik.http.routers.smtp4dev-secure.tls=true"
       - "traefik.http.routers.smtp4dev-secure.service=smtp4dev"
 
       - traefik.tcp.routers.smtp4dev_imap.entrypoints=imap
-      - traefik.tcp.routers.smtp4dev_imap.rule=HostSNI(`imap.docker.localhost`)
+      - traefik.tcp.routers.smtp4dev_imap.rule=HostSNI(`imap.localhost.dev`)
       - traefik.tcp.routers.smtp4dev_imap.service=smtp4dev_imap
       - traefik.tcp.routers.smtp4dev_imap.tls=true
       - traefik.tcp.services.smtp4dev_imap.loadbalancer.server.port=143
 
       - traefik.tcp.routers.smtp4dev_smtp.entrypoints=smtp
-      - traefik.tcp.routers.smtp4dev_smtp.rule=HostSNI(`smtp.docker.localhost`)
+      - traefik.tcp.routers.smtp4dev_smtp.rule=HostSNI(`smtp.localhost.dev`)
       - traefik.tcp.routers.smtp4dev_smtp.service=smtp4dev_smtp
       - traefik.tcp.routers.smtp4dev_smtp.tls=true
       - traefik.tcp.services.smtp4dev_smtp.loadbalancer.server.port=25
@@ -145,7 +145,7 @@ services:
       # Define the network that should be used
       - "traefik.docker.network=proxy"
       # URL to reach this container
-      - "traefik.http.routers.whoami.rule=Host(`whoami.docker.localhost`)"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.localhost.dev`)"
       # Activation of TLS
       - "traefik.http.routers.whoami.tls=true"
       # If port is different than 80, use the following service:
