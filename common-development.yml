@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  micro:
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 10
+        window: 120s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "${CONTAINER_LOG_SIZE}"
+        max-file: "${CONTAINER_LOG_COUNT}"
+ 

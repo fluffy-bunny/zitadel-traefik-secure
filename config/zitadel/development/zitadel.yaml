@@ -1,0 +1,38 @@
+Log:
+  Level: 'info'
+
+ExternalSecure: false
+ExternalDomain: 'localhost'
+ExternalPort: 8081
+Port: 8081
+
+SystemDefaults:
+  KeyConfig:
+    PrivateKeyLifetime: 8760h
+    PublicKeyLifetime: 1080h
+
+Database:
+  postgres:
+    Host: postgresql
+    Port: override_with_env_var
+    Database: zitadel
+    MaxOpenConns: 25
+    MaxConnLifetime: 1h
+    MaxConnIdleTime: 5m
+    Options:
+    User:
+      Username: override_with_env_var
+      Password: override_with_env_var
+      SSL:
+        Mode: disable
+        RootCert:
+        Cert:
+        Key:
+    Admin:
+      Username: override_with_env_var
+      Password: override_with_env_var
+      SSL:
+        Mode: disable
+        RootCert:
+        Cert:
+        Key:

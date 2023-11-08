@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+ 
+  zitadel:
+    extends:
+      file: ./common-development.yml
+      service: micro
+    container_name: zitadel
+    image: 'ghcr.io/zitadel/zitadel:v2.39.3'
+    command: 'start-from-init --masterkey "MasterkeyNeedsToHave32Characters" --tlsMode disabled --config /config/zitadel.yaml'
+    ports:
+      - '8081:8081'
+    environment:
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_USERNAME: admin@zitadel.localhost.dev
+      ZITADEL_FIRSTINSTANCE_ORG_HUMAN_PASSWORD: Password1!
+      ZITADEL_DATABASE_POSTGRES_PORT: ${POSTGRES_PORT}
+      ZITADEL_DATABASE_POSTGRES_USER_USERNAME: ${POSTGRES_USER}
+      ZITADEL_DATABASE_POSTGRES_USER_PASSWORD: ${POSTGRES_PASSWORD}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_USERNAME: ${POSTGRES_USER}
+      ZITADEL_DATABASE_POSTGRES_ADMIN_PASSWORD: ${POSTGRES_PASSWORD}
+
+    volumes:
+      - ./config/zitadel/development:/config
+      - ./config/zitadel/developmenttmp/machinekey:/machinekey
+    depends_on:
+      postgresql:
+        condition: 'service_healthy'
+
+
+
+  postgresql:
+    extends:
+      file: ./common-development.yml
+      service: micro
+    container_name: postgresql
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGPORT: ${POSTGRES_PORT}
+    image: postgres:14
+    ports:
+      - ${POSTGRES_PORT}:${POSTGRES_PORT}
+    volumes:
+       - postgresql-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  smtp4dev:
+    extends:
+      file: ./common-development.yml
+      service: micro
+    container_name: smtp4dev
+    image: rnwood/smtp4dev:v3
+
+    ports:
+      # Change the number before : to the port the web interface should be accessible on
+      - "${SMTP4DEV_WEB_PORT}:80"
+      # Change the number before : to the port the SMTP server should be accessible on
+      - '25:25'
+      # Change the number before : to the port the IMAP server should be accessible on
+      - '143:143'
+    volumes:
+      # This is where smtp4dev stores the database..
+        - smtp4dev-data:/smtp4dev
+    environment:
+      - ServerOptions__HostName=smtp4dev
+      - RelayOptions__SmtpPort=25
+      - ServerOptions__ImapPort=143
+     
+ 
+
+
+  whoami:
+    extends:
+      file: ./common-development.yml
+      service: micro
+    image: containous/whoami
+    container_name: whoami
+    security_opt:
+      - no-new-privileges:true
+   
+#====================================================
+# NETWORKS
+#====================================================
+networks:
+  development:
+ #====================================================
+# VOLUMES
+#====================================================
+volumes:
+  smtp4dev-data:
+  postgresql-data:
