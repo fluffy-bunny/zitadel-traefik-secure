@@ -42,6 +42,8 @@ docker-compose -f docker-compose.yml up -d
 
 You can now go to your browser at [whoami.localhost.dev](https://whoami.localhost.dev), enjoy :rocket: !  
 You can now go to your browser at [zitadel.localhost.dev](https://zitadel.localhost.dev), enjoy :rocket: !  
+You can now go to your browser at [pgadmin.localhost.dev](https://pgadmin.localhost.dev), enjoy :rocket: !  
+You can now go to your browser at [smtp.localhost.dev](https://smtp.localhost.dev), enjoy :rocket: !  
 
 *Note: you can access to Træfik dashboard at: [traefik.localhost.dev](https://traefik.localhost.dev)*
 
@@ -50,7 +52,7 @@ Don't forget that you can also map TCP and UDP through Træfik.
 ## hosts file Windows
 
 ```txt
-127.0.0.1 localhost.dev traefik.localhost.dev whoami.localhost.dev smtp.localhost.dev zitadel.localhost.dev
+127.0.0.1 localhost.dev traefik.localhost.dev whoami.localhost.dev smtp.localhost.dev zitadel.localhost.dev pgadmin.localhost.dev
 ```
 
 ## Zitadel SMTP

@@ -28,7 +28,7 @@ services:
       file: ./common-zitadel.yml
       service: micro
     container_name: zitadel
-    image: 'ghcr.io/zitadel/zitadel:v2.39.3'
+    image: 'ghcr.io/zitadel/zitadel:v2.41.4'
     command: 'start-from-init --masterkey "MasterkeyNeedsToHave32Characters" --tlsMode external --config /config/zitadel.yaml'
 
     environment:
@@ -69,7 +69,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGPORT: ${POSTGRES_PORT}
-    image: postgres:14
+    image: postgres:16
     ports:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
     volumes:
@@ -80,6 +80,32 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+  pgadmin:
+      extends:
+        file: ./common-zitadel.yml
+        service: micro
+      image: dpage/pgadmin4
+      container_name: pgadmin
+      environment:
+          - PGADMIN_DEFAULT_EMAIL=pgadmin4@pgadmin.org
+          - PGADMIN_DEFAULT_PASSWORD=admin1234
+       
+      labels:
+      - traefik.enable=true
+      - traefik.http.routers.pgadmin.entrypoints=http
+      - traefik.http.routers.pgadmin.rule=Host(`pgadmin.localhost.dev`)
+      - traefik.http.routers.pgadmin.service=pgadmin
+      - traefik.http.services.pgadmin.loadbalancer.server.port=80
+      - "traefik.http.middlewares.pgadmin-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.pgadmin.middlewares=pgadmin-https-redirect"
+      - "traefik.http.routers.pgadmin-secure.entrypoints=https"
+      - "traefik.http.routers.pgadmin-secure.rule=Host(`pgadmin.localhost.dev`)"
+      - "traefik.http.routers.pgadmin-secure.tls=true"
+      - "traefik.http.routers.pgadmin-secure.service=pgadmin"
+
+      restart: always
+      volumes:
+          - pgadmin:/root/.pgadmin
 
   smtp4dev:
     extends:
@@ -163,3 +189,4 @@ networks:
 volumes:
   smtp4dev-data:
   postgresql-data:
+  pgadmin:
